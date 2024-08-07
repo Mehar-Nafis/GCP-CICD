@@ -4,6 +4,13 @@ provider "google" {
   region      = "us-central1"
 }
 
+terraform {
+  backend "gcs" {
+    bucket  = "mehar-terraform-state"
+    prefix  = "terraform/state"
+  }
+}
+
 resource "google_container_cluster" "gke-cluster" {
   name               = "mehar-gke-cluster"
   network            = "default1"
