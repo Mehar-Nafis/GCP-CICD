@@ -1,0 +1,50 @@
+default:
+  image:
+    name: hashicorp/terraform
+    entrypoint: [""]
+  timeout: 15 minutes
+  cache:
+    - key: $CI_PIPELINE_ID-terraform-cache
+      paths:
+        - .terraform/
+        - .terraform.lock.hcl
+
+variables:
+  STATEFILE_NAME: "terraform.tfstate"
+  TF_ADDRESS: "https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/terraform/state/${STATEFILE_NAME}"
+  TF_USERNAME: ${GITLAB_USERNAME}
+  TF_PASSWORD: ${GITLAB_TOKEN}
+  ANSIBLE_HOST_KEY_CHECKING: "False"
+
+stages:
+  - format
+  - init
+  - validate
+
+
+format:
+  stage: format
+  script:
+  - terraform fmt
+  cache: []
+  allow_failure: true
+
+download_provider:
+  stage: init
+  script:
+  - terraform init 
+    -backend-config=address=${TF_ADDRESS}
+    -backend-config=lock_address=${TF_ADDRESS}/lock
+    -backend-config=unlock_address=${TF_ADDRESS}/lock
+    -backend-config=username=${TF_USERNAME}
+    -backend-config=password=${TF_PASSWORD}
+    -backend-config=lock_method=POST
+    -backend-config=unlock_method=DELETE
+    -backend-config=retry_wait_min=5
+
+validate:
+  stage: validate
+  script:
+  - terraform validate
+  allow_failure: true
+
