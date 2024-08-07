@@ -27,6 +27,8 @@ format:
   - terraform fmt
   cache: []
   allow_failure: true
+  tags:
+    - testing-runner
 
 
 validate:
@@ -34,5 +36,7 @@ validate:
   script:
   - terraform validate
   allow_failure: true
+  tags:
+    - testing-runner
 
 
